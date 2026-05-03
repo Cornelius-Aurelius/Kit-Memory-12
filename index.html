@@ -141,14 +141,17 @@
       overflow: hidden;
       box-shadow: var(--shadow);
       border: 1px solid rgba(255,255,255,.18);
-      background: #0e4d2b;
+      background: #0b2417;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 0;
     }
 
     .pitch {
       position: relative;
       width: 100%;
       height: 100%;
-      min-height: 500px;
+      min-height: 470px;
       background:
         repeating-linear-gradient(90deg, var(--grass1) 0 9%, var(--grass2) 9% 18%),
         linear-gradient(var(--grass1), var(--grass2));
@@ -197,19 +200,16 @@
     .box.right { right: 18px; border-right: 0; }
 
     .mission-card {
-      position: absolute;
-      left: 50%;
-      top: 12px;
-      transform: translateX(-50%);
-      width: min(92%, 650px);
+      position: relative;
+      width: 100%;
       z-index: 12;
-      background: rgba(255,255,255,.95);
+      background: rgba(255,255,255,.96);
       color: var(--text);
-      border-radius: 18px;
-      padding: 10px 12px;
-      box-shadow: 0 12px 30px rgba(0,0,0,.25);
+      border-radius: 0;
+      padding: 8px 12px 10px;
+      box-shadow: 0 10px 24px rgba(0,0,0,.22);
       text-align: center;
-      border: 1px solid rgba(0,0,0,.08);
+      border-bottom: 1px solid rgba(0,0,0,.12);
     }
 
     .mission-main {
@@ -558,6 +558,58 @@
       outline-offset: 5px;
     }
 
+
+    .center-kit-reference {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: clamp(82px, 11vw, 118px);
+      height: clamp(112px, 15vw, 158px);
+      transform: translate(-50%, -50%);
+      z-index: 4;
+      pointer-events: none;
+      display: grid;
+      place-items: center;
+    }
+
+    .center-kit-reference::before {
+      content: "YOUR KIT #12";
+      position: absolute;
+      left: 50%;
+      top: -19px;
+      transform: translateX(-50%);
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(7, 19, 15, .9);
+      color: #fff;
+      font-weight: 1000;
+      font-size: clamp(.62rem, 1.35vw, .78rem);
+      letter-spacing: .02em;
+      white-space: nowrap;
+      box-shadow: 0 8px 16px rgba(0,0,0,.3);
+    }
+
+    .center-kit-reference .player {
+      --player: clamp(72px, 9vw, 104px);
+      left: 50%;
+      top: 54%;
+      filter: drop-shadow(0 0 0 rgba(255,255,255,0)) drop-shadow(0 11px 10px rgba(0,0,0,.38));
+    }
+
+    .center-kit-reference .player::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 106%;
+      height: 91%;
+      transform: translate(-50%, -43%);
+      border-radius: 26px;
+      border: 4px solid rgba(255, 213, 74, .95);
+      box-shadow: 0 0 0 4px rgba(7, 19, 15, .78);
+      z-index: -2;
+    }
+
     .toast {
       position: absolute;
       left: 50%; top: 50%;
@@ -699,8 +751,11 @@
       .pill { min-height: 30px; padding: 6px 8px; font-size: .78rem; }
       .pause-btn { min-height: 32px; padding: 6px 10px; font-size: .82rem; }
       .brand span { display: none; }
-      .mission-card { top: 8px; padding: 9px 10px; border-radius: 16px; }
+      .mission-card { padding: 7px 9px 9px; border-radius: 0; }
       .mission-sub { font-size: .78rem; }
+      .center-kit-reference { width: 76px; height: 104px; }
+      .center-kit-reference .player { --player: 68px; }
+      .center-kit-reference::before { top: -16px; font-size: .6rem; }
       .box { display: none; }
     }
 
@@ -719,7 +774,8 @@
       .pitch { min-height: 0; height: calc(100svh - 82px); }
       .game-area { grid-template-columns: 1fr; }
       .topbar { padding: 7px 9px; }
-      .mission-card { padding: 7px 10px; }
+      .mission-card { padding: 6px 8px 8px; }
+      .center-kit-reference { transform: translate(-50%, -45%); }
       .mission-sub { display: none; }
     }
   </style>
@@ -742,20 +798,20 @@
 
     <section class="game-area">
       <div class="pitch-card">
+        <div class="mission-card" aria-live="polite">
+          <div class="mission-main">
+            <span id="missionTitle">PRESS START</span>
+            <span id="countBadge" class="count-badge">▶</span>
+          </div>
+          <div id="missionSub" class="mission-sub">Memorise the player wearing your kit. Then tap where they were.</div>
+          <div class="timebar"><i id="timeFill"></i></div>
+        </div>
+
         <div id="pitch" class="pitch" role="application" aria-label="Football pitch">
           <div class="centre-circle"></div>
           <div class="box left"></div>
           <div class="box right"></div>
-
-          <div class="mission-card" aria-live="polite">
-            <div class="mission-main">
-              <span id="missionTitle">PRESS START</span>
-              <span id="countBadge" class="count-badge">▶</span>
-            </div>
-            <div id="missionSub" class="mission-sub">Memorise the player wearing your kit. Then tap where they were.</div>
-            <div class="timebar"><i id="timeFill"></i></div>
-          </div>
-
+          <div id="centerKit" class="center-kit-reference" aria-hidden="true"></div>
           <div id="playersLayer"></div>
           <div id="toast" class="toast">Correct Pass</div>
         </div>
@@ -791,8 +847,8 @@
       <div class="rules">
         <div class="rule"><b>1</b><span>Look for the teammate wearing your kit.</span></div>
         <div class="rule"><b>2</b><span>Use socks, shorts, stripe, badge and position.</span></div>
-        <div class="rule"><b>3</b><span>When they are hidden, tap the correct spot.</span></div>
-        <div class="rule"><b>⏱</b><span>Level 1 starts with 10 seconds. Each level gets faster, down to 4 seconds.</span></div>
+        <div class="rule"><b>3</b><span>Level 1 gives 10 seconds. Each level gets faster, down to 4 seconds.</span></div>
+        <div class="rule"><b>4</b><span>When they are hidden, tap the correct spot.</span></div>
       </div>
       <button id="startBtn" class="big-btn" type="button">Start Level 1</button>
     </div>
@@ -845,6 +901,7 @@
       const finalText = document.getElementById('finalText');
       const bestText = document.getElementById('bestText');
       const youPreview = document.getElementById('youPreview');
+      const centerKit = document.getElementById('centerKit');
 
       const teamKits = [
         { shirt: '#c92a2a', shorts: '#ffffff', socks: '#ffffff', stripe: '#ffffff', badge: '#111111', stripeClass: 'stripe-v', badgeClass: 'badge-left' },
@@ -855,26 +912,21 @@
       ];
 
       const levels = [
-        { cue: 'Same full kit', sub: 'Find the only player wearing your shirt, shorts and socks.', opponents: 3, difficulty: 0 },
-        { cue: 'Socks clue', sub: 'The shirts may look close. Check the socks.', opponents: 4, difficulty: 1 },
-        { cue: 'Shorts clue', sub: 'The shirts can trick you. Check shorts + socks.', opponents: 4, difficulty: 1 },
-        { cue: 'Stripe clue', sub: 'Find the shirt pattern that matches your kit.', opponents: 5, difficulty: 2 },
-        { cue: 'Badge side', sub: 'Left badge or right badge can save the pass.', opponents: 5, difficulty: 2 },
-        { cue: 'Same kit under pressure', sub: 'More players. Same rule. Memorise the location.', opponents: 6, difficulty: 3 },
-        { cue: 'Crowded pitch', sub: 'Scan fast. Lock the teammate position in your memory.', opponents: 7, difficulty: 3 },
-        { cue: 'Match speed', sub: 'Trust kit details, then trust your memory.', opponents: 7, difficulty: 4 }
+        { cue: 'Same full kit', sub: 'Find the only player wearing your shirt, shorts and socks.', ms: 3900, opponents: 3, difficulty: 0 },
+        { cue: 'Socks clue', sub: 'The shirts may look close. Check the socks.', ms: 3600, opponents: 4, difficulty: 1 },
+        { cue: 'Shorts clue', sub: 'The shirts can trick you. Check shorts + socks.', ms: 3400, opponents: 4, difficulty: 1 },
+        { cue: 'Stripe clue', sub: 'Find the shirt pattern that matches your kit.', ms: 3200, opponents: 5, difficulty: 2 },
+        { cue: 'Badge side', sub: 'Left badge or right badge can save the pass.', ms: 3000, opponents: 5, difficulty: 2 },
+        { cue: 'Same kit under pressure', sub: 'More players. Same rule. Memorise the location.', ms: 2800, opponents: 6, difficulty: 3 },
+        { cue: 'Crowded pitch', sub: 'Scan fast. Lock the teammate position in your memory.', ms: 2600, opponents: 7, difficulty: 3 },
+        { cue: 'Match speed', sub: 'Trust kit details, then trust your memory.', ms: 2400, opponents: 7, difficulty: 4 }
       ];
 
-      function getMemoryMs() {
-        // Level 1 gives 10 seconds. Each level removes 1 second until the minimum of 4 seconds.
-        return Math.max(4000, 11000 - (level * 1000));
-      }
-
       const positions = [
-        {x: 18, y: 22}, {x: 35, y: 18}, {x: 58, y: 20}, {x: 78, y: 24},
-        {x: 22, y: 40}, {x: 42, y: 38}, {x: 62, y: 42}, {x: 82, y: 43},
-        {x: 17, y: 61}, {x: 36, y: 60}, {x: 54, y: 63}, {x: 74, y: 60},
-        {x: 28, y: 79}, {x: 49, y: 80}, {x: 69, y: 78}, {x: 88, y: 73}
+        {x: 17, y: 18}, {x: 32, y: 18}, {x: 68, y: 18}, {x: 83, y: 20},
+        {x: 17, y: 36}, {x: 31, y: 42}, {x: 69, y: 42}, {x: 84, y: 37},
+        {x: 16, y: 58}, {x: 30, y: 64}, {x: 70, y: 64}, {x: 85, y: 59},
+        {x: 22, y: 80}, {x: 40, y: 82}, {x: 60, y: 82}, {x: 78, y: 80}
       ];
 
       const opponentNumbers = [2,3,4,5,6,7,9,10,11,14,15,16,18,21];
@@ -892,6 +944,7 @@
       let coverTimeout = null;
       let endTime = 0;
       let pausedRemaining = 0;
+      let currentDurationMs = 10000;
       let phaseBeforePause = 'idle';
       let best = Number(localStorage.getItem('kitMemory12Best') || 0);
 
@@ -954,6 +1007,19 @@
         youPreview.appendChild(p);
       }
 
+      function renderCenterKit() {
+        centerKit.innerHTML = '';
+        const p = makePlayer({ id: 'centre-you', x: 50, y: 50, kit: currentKit, number: 12, target: false, covered: false });
+        p.tabIndex = -1;
+        p.setAttribute('aria-hidden', 'true');
+        p.style.pointerEvents = 'none';
+        centerKit.appendChild(p);
+      }
+
+      function memoryDurationMs() {
+        return Math.max(4000, 11000 - (level * 1000));
+      }
+
       function makeDecoyKit(teamKit, levelData, index) {
         const palette = [
           '#bf3030', '#a53038', '#7b1fa2', '#2f3ab2', '#275f41', '#315b66', '#e07b21', '#af8b17', '#101820', '#eeeeee'
@@ -1005,6 +1071,7 @@
         currentKit = teamKits[(level - 1) % teamKits.length];
         currentKit.skin = skinTones[level % skinTones.length];
         renderYouPreview();
+        renderCenterKit();
         cueText.textContent = levelData.cue;
 
         const selectedPositions = shuffle(positions).slice(0, levelData.opponents + 1);
@@ -1060,7 +1127,7 @@
 
       function updateTimer() {
         const remaining = Math.max(0, endTime - Date.now());
-        const pct = clamp(remaining / getMemoryMs(), 0, 1);
+        const pct = clamp(remaining / currentDurationMs, 0, 1);
         timeFill.style.transform = `scaleX(${pct})`;
         countBadge.textContent = String(Math.max(1, Math.ceil(remaining / 1000)));
       }
@@ -1082,10 +1149,11 @@
         pauseBtn.disabled = false;
         const levelData = buildMission();
         missionTitle.textContent = 'MEMORISE YOUR TEAMMATE';
-        missionSub.textContent = levelData.sub;
+        currentDurationMs = memoryDurationMs();
+        missionSub.textContent = `${levelData.sub} ${Math.round(currentDurationMs / 1000)} seconds.`;
         drawPlayers(false);
         updateHud();
-        startMemoryTimer(getMemoryMs());
+        startMemoryTimer(currentDurationMs);
       }
 
       function showToast(text, type) {
@@ -1176,7 +1244,12 @@
         if (phase === 'memorise') {
           endTime = Date.now() + pausedRemaining;
           clearTimers();
-          timerInterval = setInterval(updateTimer, 40);
+          timerInterval = setInterval(() => {
+            const remaining = Math.max(0, endTime - Date.now());
+            const pct = clamp(remaining / currentDurationMs, 0, 1);
+            timeFill.style.transform = `scaleX(${pct})`;
+            countBadge.textContent = String(Math.max(1, Math.ceil(remaining / 1000)));
+          }, 40);
           coverTimeout = setTimeout(coverPlayers, pausedRemaining);
         }
       }
@@ -1200,6 +1273,7 @@
       // Draw initial #12 preview before the game starts.
       currentKit = teamKits[0];
       renderYouPreview();
+      renderCenterKit();
       updateHud();
     })();
   </script>
