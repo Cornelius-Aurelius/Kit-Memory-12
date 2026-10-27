@@ -1,0 +1,66 @@
+from pathlib import Path
+from playwright.sync_api import sync_playwright
+root=Path(__file__).resolve().parents[1]
+with sync_playwright() as p:
+    browser=p.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-dev-shm-usage'])
+    for width,height in [(280,650),(320,700),(375,812),(430,932),(768,920),(1024,800),(1440,900)]:
+        page=browser.new_page(viewport={'width':width,'height':height},device_scale_factor=1)
+        errors=[];page.on('pageerror',lambda e: errors.append(str(e)))
+        html=(root/'index.html').read_text().replace('<link rel="stylesheet" href="styles.css">','<style>'+(root/'styles.css').read_text()+'</style>')
+        html=html.replace('<script src="core.js" defer></script><script src="app.js" defer></script>','')
+        html=html.replace('</body>','<script>'+(root/'core.js').read_text()+'</script><script>'+(root/'app.js').read_text()+'</script></body>')
+        page.set_content(html,wait_until='load')
+        page.wait_for_timeout(100)
+        overflow=page.evaluate('document.documentElement.scrollWidth > window.innerWidth + 1')
+        assert not overflow,(width,'horizontal overflow',page.evaluate('document.documentElement.scrollWidth'))
+        assert not errors,(width,errors)
+        if width in (375,1440): page.screenshot(path=str(root/'tests'/f'screen_{width}.png'),full_page=True)
+        assert page.get_by_text('ARE YOU READY TO REMEMBER?').is_visible()
+        page.close()
+    page=browser.new_page(viewport={'width':430,'height':900})
+    errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+    html=(root/'index.html').read_text().replace('<link rel="stylesheet" href="styles.css">','<style>'+(root/'styles.css').read_text()+'</style>')
+    html=html.replace('<script src="core.js" defer></script><script src="app.js" defer></script>','')
+    html=html.replace('</body>','<script>'+(root/'core.js').read_text()+'</script><script>'+(root/'app.js').read_text()+'</script></body>')
+    page.set_content(html,wait_until='load')
+    page.locator('[data-mode="practice"]').click()
+    page.locator('#modalPrimary').click()
+    for stage in range(1,31):
+        page.locator('#readyBtn').click()
+        page.wait_for_function("document.querySelectorAll('.player-card.covered').length>0")
+        page.locator('.player-card[data-target="true"]').click()
+        page.wait_for_function("document.querySelector('#phaseTag').textContent==='GREAT PASS'")
+        page.keyboard.press('Enter')
+        if stage<30: page.wait_for_function("document.querySelector('#phaseTag').textContent==='STUDY'")
+    assert page.locator('#modalTitle').inner_text().strip()=='TRAINING COMPLETE'
+    assert not errors,errors
+    page.locator('#modalSecondary').click()
+    page.locator('[data-mode="campaign"]').click()
+    page.locator('#modalPrimary').click()
+    page.locator('#pauseBtn').click()
+    assert page.locator('#modalTitle').inner_text().strip()=='GAME PAUSED'
+    page.locator('#modalPrimary').click()
+    assert page.locator('#overlay').is_hidden()
+    page.locator('#themeBtn').click()
+    assert page.evaluate('document.documentElement.dataset.theme')=='violet'
+    page.screenshot(path=str(root/'tests'/'playing.png'),full_page=True)
+    extra=browser.new_page(viewport={'width':375,'height':812})
+    extra.set_content(html,wait_until='load')
+    extra.locator('[data-mode="practice"]').click()
+    extra.locator('#modalPrimary').click()
+    extra.locator('#readyBtn').click()
+    extra.wait_for_function("document.querySelectorAll('.player-card.covered').length>0")
+    extra.locator('#hintBtn').click()
+    assert extra.locator('.player-card.hinted').count()==1
+    wrong=extra.locator('.player-card[data-target="false"]').first
+    wrong.click()
+    extra.wait_for_function("document.querySelector('#phaseTag').textContent==='COACHING TIP'")
+    extra.wait_for_function("document.querySelector('#stageValue').textContent.startsWith('02')",timeout=4000)
+    extra.locator('#readyBtn').click()
+    extra.locator('.player-card[data-target="true"]').click()
+    extra.wait_for_function("document.querySelector('#phaseTag').textContent==='GREAT PASS'")
+    extra.wait_for_function("document.querySelector('#stageValue').textContent.startsWith('03')",timeout=4000)
+    assert not extra.evaluate('document.documentElement.scrollWidth > innerWidth+1')
+    extra.close()
+    browser.close()
+print('Chromium responsive, keyboard, 30 stages, pause, theme QA passed')
