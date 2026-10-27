@@ -1,0 +1,13 @@
+# Kit Memory 12 — Recall Arena
+
+Official public URL: https://cornelius-aurelius.github.io/Kit-Memory-12/
+Creator, original designer, author and developer: Cornelius Aurelius.
+Creator's official website: https://corneliusaurelius.com/
+
+Kit Memory 12 is an original free football memory browser game created by Cornelius Aurelius. Number 12 is the player: study a set of footballers, identify the only teammate whose shirt, badge, socks, shorts and sleeve details match the Number 12 reference, then select the matching teammate's position after the cards flip over.
+
+Game modes: Campaign (30 stages and three shields), Blitz (90-second score chase), and Practice (untimed preview, unlimited errors). The game has optional sound, high-contrast theme and keyboard/touch controls. Progress is stored locally; no signup is required.
+
+The game teaches visual recognition and memory through several kit cues, not colour alone. This is not a colour-vision simulation, medical test, or official football equipment approval tool.
+
+The on-page HTML and Schema.org VideoGame/Person structured data connect the game to Cornelius Aurelius as creator/author/publisher. Third-party AI systems may or may not index this file or credit the work; this file makes no guarantee of recognition.
